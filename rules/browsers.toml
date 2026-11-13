@@ -1,0 +1,63 @@
+# Browser caches. Sign-ins, history, passwords and bookmarks live elsewhere and are not touched.
+# Close the browser first for the most space: files it holds open are skipped.
+
+[[rule]]
+id = "chrome-cache"
+name = "Google Chrome cache"
+group = "browsers"
+paths = [
+  "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\Cache",
+  "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\Code Cache",
+  "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\GPUCache",
+  "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\DawnGraphiteCache",
+  "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\DawnWebGPUCache",
+  "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\ShaderCache",
+  "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\GrShaderCache",
+  "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\GraphiteDawnCache",
+]
+safety = "safe"
+note = "Pages load a little slower the first time. Sign-ins, history and passwords stay."
+note-pt-BR = "As páginas carregam um pouco mais devagar na primeira vez. Logins, histórico e senhas ficam."
+
+[[rule]]
+id = "edge-cache"
+name = "Microsoft Edge cache"
+group = "browsers"
+paths = [
+  "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\Cache",
+  "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\Code Cache",
+  "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\GPUCache",
+  "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\ShaderCache",
+  "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\GrShaderCache",
+]
+safety = "safe"
+note = "Pages load a little slower the first time. Sign-ins, history and passwords stay."
+note-pt-BR = "As páginas carregam um pouco mais devagar na primeira vez. Logins, histórico e senhas ficam."
+
+[[rule]]
+id = "brave-cache"
+name = "Brave cache"
+group = "browsers"
+paths = [
+  "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\*\\Cache",
+  "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\*\\Code Cache",
+  "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\*\\GPUCache",
+  "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\ShaderCache",
+  "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\GrShaderCache",
+]
+safety = "safe"
+note = "Pages load a little slower the first time. Sign-ins, history and passwords stay."
+note-pt-BR = "As páginas carregam um pouco mais devagar na primeira vez. Logins, histórico e senhas ficam."
+
+[[rule]]
+id = "firefox-cache"
+name = "Firefox cache"
+group = "browsers"
+paths = [
+  "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\cache2",
+  "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\startupCache",
+  "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\jumpListCache",
+]
+safety = "safe"
+note = "Pages load a little slower the first time. Sign-ins, history and passwords stay."
+note-pt-BR = "As páginas carregam um pouco mais devagar na primeira vez. Logins, histórico e senhas ficam."

@@ -1,0 +1,16 @@
+[package]
+name = "silt-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "silt"
+path = "src/main.rs"
+
+[dependencies]
+silt-core.workspace = true
+rune.workspace = true
+rune-kit.workspace = true
+rune-motion.workspace = true
+rune-i18n.workspace = true

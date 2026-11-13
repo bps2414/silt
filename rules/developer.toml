@@ -1,0 +1,170 @@
+# Package manager and build caches. A relocated cache is found through its variable first.
+
+[[rule]]
+id = "npm-cache"
+name = "npm cache"
+group = "developer"
+paths = ["env:npm_config_cache", "%LOCALAPPDATA%\\npm-cache"]
+safety = "safe"
+note = "Re-downloaded on the next install."
+note-pt-BR = "Baixado de novo na próxima instalação."
+
+[[rule]]
+id = "yarn-cache"
+name = "Yarn cache"
+group = "developer"
+paths = ["env:YARN_CACHE_FOLDER", "%LOCALAPPDATA%\\Yarn\\Cache"]
+safety = "safe"
+note = "Re-downloaded on the next install."
+note-pt-BR = "Baixado de novo na próxima instalação."
+
+[[rule]]
+id = "pnpm-store"
+name = "pnpm store"
+group = "developer"
+paths = ["env:PNPM_STORE_DIR", "%LOCALAPPDATA%\\pnpm\\store", "%LOCALAPPDATA%\\pnpm-cache"]
+safety = "caution"
+note = "Projects keep working: their node_modules hold hard links. Space returns only as projects reinstall."
+note-pt-BR = "Os projetos continuam funcionando: os node_modules guardam hard links. O espaço volta conforme os projetos reinstalam."
+
+[[rule]]
+id = "bun-cache"
+name = "Bun cache"
+group = "developer"
+paths = ["env:BUN_INSTALL_CACHE_DIR", "%USERPROFILE%\\.bun\\install\\cache"]
+safety = "safe"
+note = "Re-downloaded on the next install."
+note-pt-BR = "Baixado de novo na próxima instalação."
+
+[[rule]]
+id = "cargo-registry"
+name = "Cargo registry cache"
+group = "developer"
+paths = [
+  "env:CARGO_HOME\\registry\\cache",
+  "env:CARGO_HOME\\registry\\src",
+  "%USERPROFILE%\\.cargo\\registry\\cache",
+  "%USERPROFILE%\\.cargo\\registry\\src",
+]
+safety = "safe"
+note = "Crate downloads. Re-downloaded on the next build."
+note-pt-BR = "Crates baixados. Baixados de novo no próximo build."
+
+[[rule]]
+id = "uv-cache"
+name = "uv cache"
+group = "developer"
+paths = ["env:UV_CACHE_DIR", "%LOCALAPPDATA%\\uv\\cache"]
+safety = "safe"
+note = "Python packages uv downloaded. Re-downloaded on the next install."
+note-pt-BR = "Pacotes Python que o uv baixou. Baixados de novo na próxima instalação."
+
+[[rule]]
+id = "pip-cache"
+name = "pip cache"
+group = "developer"
+paths = ["env:PIP_CACHE_DIR", "%LOCALAPPDATA%\\pip\\cache"]
+safety = "safe"
+note = "Re-downloaded on the next install."
+note-pt-BR = "Baixado de novo na próxima instalação."
+
+[[rule]]
+id = "gradle-cache"
+name = "Gradle caches"
+group = "developer"
+paths = ["env:GRADLE_USER_HOME\\caches", "%USERPROFILE%\\.gradle\\caches"]
+safety = "safe"
+note = "Dependencies and build caches. The next build downloads and rebuilds them."
+note-pt-BR = "Dependências e caches de build. O próximo build baixa e refaz."
+
+[[rule]]
+id = "nuget-cache"
+name = "NuGet HTTP cache"
+group = "developer"
+paths = ["env:NUGET_HTTP_CACHE_PATH", "%LOCALAPPDATA%\\NuGet\\v3-cache", "%LOCALAPPDATA%\\NuGet\\plugins-cache"]
+safety = "safe"
+note = "Re-downloaded on the next restore."
+note-pt-BR = "Baixado de novo no próximo restore."
+
+[[rule]]
+id = "nuget-packages"
+name = "NuGet packages"
+group = "developer"
+paths = ["env:NUGET_PACKAGES", "%USERPROFILE%\\.nuget\\packages"]
+safety = "caution"
+note = "Every .NET project restores its packages again before it builds."
+note-pt-BR = "Cada projeto .NET restaura os pacotes de novo antes de compilar."
+
+[[rule]]
+id = "go-build-cache"
+name = "Go build cache"
+group = "developer"
+paths = ["env:GOCACHE", "%LOCALAPPDATA%\\go-build"]
+safety = "safe"
+note = "The next build is slower once."
+note-pt-BR = "O próximo build fica mais lento uma vez."
+
+[[rule]]
+id = "go-module-cache"
+name = "Go module cache"
+group = "developer"
+paths = ["env:GOMODCACHE", "%USERPROFILE%\\go\\pkg\\mod"]
+safety = "caution"
+note = "Modules are downloaded again; offline builds fail until then."
+note-pt-BR = "Os módulos são baixados de novo; builds sem internet falham até lá."
+
+[[rule]]
+id = "maven-repository"
+name = "Maven repository"
+group = "developer"
+paths = ["%USERPROFILE%\\.m2\\repository"]
+safety = "caution"
+note = "Dependencies are downloaded again; offline builds fail until then."
+note-pt-BR = "As dependências são baixadas de novo; builds sem internet falham até lá."
+
+[[rule]]
+id = "playwright-browsers"
+name = "Playwright browsers"
+group = "developer"
+paths = ["env:PLAYWRIGHT_BROWSERS_PATH", "%LOCALAPPDATA%\\ms-playwright"]
+safety = "caution"
+note = "Browsers for end-to-end tests. Reinstall with `npx playwright install`."
+note-pt-BR = "Navegadores para testes ponta a ponta. Reinstale com `npx playwright install`."
+
+[[rule]]
+id = "huggingface-hub"
+name = "Hugging Face models"
+group = "developer"
+paths = ["env:HF_HOME\\hub", "%USERPROFILE%\\.cache\\huggingface\\hub"]
+safety = "caution"
+note = "Downloaded models, often many GB to download again."
+note-pt-BR = "Modelos baixados, muitas vezes vários GB para baixar de novo."
+
+[[rule]]
+id = "electron-cache"
+name = "Electron and node-gyp downloads"
+group = "developer"
+paths = [
+  "env:ELECTRON_CACHE",
+  "env:ELECTRON_BUILDER_CACHE",
+  "%LOCALAPPDATA%\\electron\\Cache",
+  "%LOCALAPPDATA%\\electron-builder\\Cache",
+  "%LOCALAPPDATA%\\node-gyp\\Cache",
+]
+safety = "safe"
+note = "Re-downloaded on the next build."
+note-pt-BR = "Baixado de novo no próximo build."
+
+[[rule]]
+id = "vscode-cache"
+name = "VS Code caches"
+group = "developer"
+paths = [
+  "%APPDATA%\\Code\\Cache",
+  "%APPDATA%\\Code\\CachedData",
+  "%APPDATA%\\Code\\CachedExtensionVSIXs",
+  "%APPDATA%\\Code\\GPUCache",
+]
+safety = "safe"
+note = "VS Code rebuilds these as it runs. Close it first for the most space."
+note-pt-BR = "O VS Code refaz isso enquanto roda. Feche antes para liberar mais."

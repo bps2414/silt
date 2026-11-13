@@ -1,0 +1,53 @@
+# Compiled shaders kept by the graphics driver and DirectX. Rebuilt on demand.
+
+[[rule]]
+id = "nvidia-shader-cache"
+name = "NVIDIA shader cache"
+group = "gpu"
+paths = [
+  "%LOCALAPPDATA%\\NVIDIA\\DXCache",
+  "%LOCALAPPDATA%\\NVIDIA\\GLCache",
+  "%LOCALAPPDATA%\\NVIDIA\\OptixCache",
+  "%USERPROFILE%\\AppData\\LocalLow\\NVIDIA\\PerDriverVersion\\DXCache",
+  "%USERPROFILE%\\AppData\\LocalLow\\NVIDIA\\PerDriverVersion\\GLCache",
+  "%LOCALAPPDATA%\\NVIDIA Corporation\\NV_Cache",
+  "%PROGRAMDATA%\\NVIDIA Corporation\\NV_Cache",
+]
+safety = "caution"
+note = "Games compile their shaders again on the next launch, so the first minutes can stutter."
+note-pt-BR = "Os jogos compilam os shaders de novo na próxima abertura, então os primeiros minutos podem engasgar."
+
+[[rule]]
+id = "amd-shader-cache"
+name = "AMD shader cache"
+group = "gpu"
+paths = [
+  "%LOCALAPPDATA%\\AMD\\DxCache",
+  "%LOCALAPPDATA%\\AMD\\DxcCache",
+  "%LOCALAPPDATA%\\AMD\\GLCache",
+  "%LOCALAPPDATA%\\AMD\\VkCache",
+]
+safety = "caution"
+note = "Games compile their shaders again on the next launch, so the first minutes can stutter."
+note-pt-BR = "Os jogos compilam os shaders de novo na próxima abertura, então os primeiros minutos podem engasgar."
+
+[[rule]]
+id = "intel-shader-cache"
+name = "Intel shader cache"
+group = "gpu"
+paths = [
+  "%LOCALAPPDATA%\\Intel\\ShaderCache",
+  "%USERPROFILE%\\AppData\\LocalLow\\Intel\\ShaderCache",
+]
+safety = "caution"
+note = "Games compile their shaders again on the next launch, so the first minutes can stutter."
+note-pt-BR = "Os jogos compilam os shaders de novo na próxima abertura, então os primeiros minutos podem engasgar."
+
+[[rule]]
+id = "directx-shader-cache"
+name = "DirectX shader cache"
+group = "gpu"
+paths = ["%LOCALAPPDATA%\\D3DSCache"]
+safety = "caution"
+note = "Games compile their shaders again on the next launch, so the first minutes can stutter."
+note-pt-BR = "Os jogos compilam os shaders de novo na próxima abertura, então os primeiros minutos podem engasgar."

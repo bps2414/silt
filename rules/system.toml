@@ -1,0 +1,67 @@
+# Windows' own caches and leftovers. Paths: `env:VAR`, `%VAR%\...`, `*` within one folder name.
+# A rule's folders are emptied, never removed; files in use are skipped and listed.
+
+[[rule]]
+id = "user-temp"
+name = "Temporary files"
+group = "system"
+paths = ["%TEMP%"]
+safety = "safe"
+note = "Files programs left in your temp folder. Files still in use are skipped."
+note-pt-BR = "Arquivos que programas deixaram na sua pasta temporária. Arquivos em uso são pulados."
+
+[[rule]]
+id = "windows-temp"
+name = "Windows temporary files"
+group = "system"
+paths = ["%WINDIR%\\Temp"]
+safety = "safe"
+note = "Temporary files of Windows and installers. Files still in use are skipped."
+note-pt-BR = "Arquivos temporários do Windows e de instaladores. Arquivos em uso são pulados."
+
+[[rule]]
+id = "crash-dumps"
+name = "Crash dumps and error reports"
+group = "system"
+paths = [
+  "%LOCALAPPDATA%\\CrashDumps",
+  "%WINDIR%\\Minidump",
+  "%WINDIR%\\MEMORY.DMP",
+  "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportArchive",
+  "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportQueue",
+  "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportArchive",
+  "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportQueue",
+]
+safety = "safe"
+note = "Memory dumps and reports from programs that crashed. Only useful to debug that crash."
+note-pt-BR = "Despejos de memória e relatórios de programas que travaram. Só servem para investigar aquele travamento."
+
+[[rule]]
+id = "thumbnails"
+name = "Thumbnail cache"
+group = "system"
+paths = ["%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"]
+safety = "safe"
+note = "Thumbnails of pictures and videos. Explorer draws them again as you open folders."
+note-pt-BR = "Miniaturas de fotos e vídeos. O Explorer desenha de novo conforme você abre as pastas."
+
+[[rule]]
+id = "windows-update-download"
+name = "Windows Update downloads"
+group = "system"
+paths = ["%WINDIR%\\SoftwareDistribution\\Download"]
+safety = "caution"
+note = "Update files already downloaded. If an update is still pending, Windows downloads it again."
+note-pt-BR = "Arquivos de atualização já baixados. Se alguma atualização estiver pendente, o Windows baixa de novo."
+
+[[rule]]
+id = "delivery-optimization"
+name = "Delivery Optimization cache"
+group = "system"
+paths = [
+  "%WINDIR%\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache",
+  "%WINDIR%\\SoftwareDistribution\\DeliveryOptimization",
+]
+safety = "safe"
+note = "Update pieces Windows keeps to share with other PCs."
+note-pt-BR = "Pedaços de atualizações que o Windows guarda para compartilhar com outros PCs."

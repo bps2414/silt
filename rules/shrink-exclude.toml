@@ -1,0 +1,29 @@
+# What Shrink never compresses. Contributions welcome: one entry, one reason.
+
+# Files below this size: a 4 KB cluster cannot shrink further.
+min_size = 4096
+
+# Already compressed formats: nothing to gain.
+extensions = [
+  # video
+  "mp4", "mkv", "mov", "avi", "wmv", "webm", "m4v", "flv", "mts", "m2ts", "bik", "bk2", "usm",
+  # images
+  "jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "avif", "jxl", "dds", "ktx2", "basis",
+  # audio
+  "mp3", "aac", "m4a", "ogg", "opus", "flac", "wma", "wem", "bnk", "fsb", "xma",
+  # archives and game packages
+  "zip", "7z", "rar", "gz", "tgz", "xz", "zst", "bz2", "lz4", "cab", "msi", "msix", "appx", "nupkg", "jar",
+  "whl", "crate", "apk", "aab", "pak", "ucas", "utoc", "vpk", "arc", "pck", "obb", "chd", "cso", "zpaq",
+  # databases, files rewritten in place, disk images and virtual machines
+  "db", "sqlite", "sqlite3", "ldb", "mdb", "accdb", "edb", "ndf", "mdf", "ldf", "vhd", "vhdx", "vmdk", "vdi",
+  "qcow2", "iso", "img", "wim", "esd", "swp", "log",
+]
+
+# Folders (by name, at any depth) left alone: anti-cheat software checks its own files.
+folders = [
+  "EasyAntiCheat", "EasyAntiCheat_EOS", "BattlEye", "Vanguard", "Riot Vanguard", "PunkBuster",
+  "nProtect", "XIGNCODE", "mhyprot", "GameGuard", "FACEIT", "ESEA", "Windows",
+]
+
+# A folder that ships one of these reads through DirectStorage: Shrink warns before touching it.
+directstorage = ["dstorage.dll", "dstoragecore.dll"]
