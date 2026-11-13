@@ -480,6 +480,27 @@ fn poll(s: &mut App, clock: f64, tx: &mut Tx) -> bool {
         tx.wake_after(std::time::Duration::from_millis(50));
     }
     let mut moving = false;
+    let replay_files = s.replay.as_ref().map(|d| d.report.files);
+    if let Some(files) = replay_files
+        && let Phase::Scanning {
+            found,
+            entries,
+            used,
+        } = &mut s.phase
+    {
+        // Fast at first, slowing near the end, the way an MFT read finds big files early.
+        let left = used.saturating_sub(*found) as f32;
+        let step = (*used as f32 * dt / 2.6).max(left * dt * 1.6);
+        *found = (*found + step as u64).min(*used);
+        *entries = (*found as u128 * files as u128 / (*used).max(1) as u128) as u64;
+        if *found >= *used
+            && let Some(d) = s.replay.take()
+        {
+            s.load(*d);
+            s.color_t = 0.0;
+        }
+        moving = true;
+    }
     let target = if s.preview.is_some() { 1.0 } else { 0.0 };
     if s.preview_t != target {
         let step = dt / 0.12;
@@ -547,6 +568,16 @@ const SCENES: &[Scene] = &[
         s.phase = Phase::Scanning {
             found: used * 46 / 100,
             entries: 412_330,
+            used,
+        };
+    }),
+    // The scan replayed: the bar fills, then sorts itself into colours (README recording).
+    ("overview-replay", |s| {
+        let used = s.volume().map_or(0, |v| v.used());
+        s.replay = s.data.take();
+        s.phase = Phase::Scanning {
+            found: 0,
+            entries: 0,
             used,
         };
     }),

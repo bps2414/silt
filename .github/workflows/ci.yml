@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+    paths-ignore: ["*.md", "docs/**", "launch/**"]
+  pull_request:
+  workflow_dispatch:
+
+# A newer push on the same branch cancels the run it makes stale.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+
+jobs:
+  check:
+    name: Windows (fmt, clippy, tests, build)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      # Installs the toolchain rust-toolchain.toml pins (1.99.1, clippy, rustfmt).
+      - name: Toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+      - name: fmt
+        run: cargo fmt --all --check
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: windows-ci
+          cache-on-failure: true
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: tests
+        run: cargo test --workspace
+      - name: build (release)
+        run: cargo build --release --workspace
+      # Every screen renders headless on the fixed drive. Hosted runners have no GPU, so this
+      # leans on the software adapter: informative, not a gate.
+      - name: scenes
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force snaps | Out-Null
+          foreach ($s in @("overview", "clean", "shrink", "large", "explore", "history", "settings")) {
+            target\release\silt.exe --snap "snaps\$s.png" --scene $s --size 1120x760 --scale 1
+            if ($LASTEXITCODE -ne 0) { throw "scene $s failed" }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scenes
+          path: snaps
+          retention-days: 7

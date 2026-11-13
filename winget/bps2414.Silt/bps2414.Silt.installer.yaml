@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.9.0.schema.json
+PackageIdentifier: bps2414.Silt
+PackageVersion: 0.1.0
+MinimumOSVersion: 10.0.17763.0
+InstallerType: inno
+Scope: user
+InstallModes:
+  - interactive
+  - silent
+  - silentWithProgress
+UpgradeBehavior: install
+ReleaseDate: 2026-11-13
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/bps2414/silt/releases/download/v0.1.0/Silt-Setup-0.1.0.exe
+    InstallerSha256: <SHA256>
+ManifestType: installer
+ManifestVersion: 1.9.0

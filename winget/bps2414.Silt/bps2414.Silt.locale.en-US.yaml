@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.9.0.schema.json
+PackageIdentifier: bps2414.Silt
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: bps2414
+PublisherUrl: https://github.com/bps2414
+PublisherSupportUrl: https://github.com/bps2414/silt/issues
+PackageName: Silt
+PackageUrl: https://github.com/bps2414/silt
+License: MIT OR Apache-2.0
+LicenseUrl: https://github.com/bps2414/silt/blob/main/LICENSE-MIT
+ShortDescription: See what fills your drive, and get the space back without deleting what you use.
+Description: |-
+  Silt scans an NTFS drive in seconds by reading its Master File Table, sorts every byte into
+  categories, and offers four ways back to space: Shrink (Windows' transparent compression, nothing
+  deleted, undo any time), Clean (caches that rebuild themselves), Trash (to the Recycle Bin) and
+  Empty Recycle Bin.
+Moniker: silt
+Tags:
+  - disk-space
+  - disk-usage
+  - storage
+  - cleanup
+  - compression
+  - wof
+  - ntfs
+ReleaseNotesUrl: https://github.com/bps2414/silt/releases/tag/v0.1.0
+ManifestType: defaultLocale
+ManifestVersion: 1.9.0

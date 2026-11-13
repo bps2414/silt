@@ -1,0 +1,8 @@
+# winget version manifest. The release workflow copies these three files with the version and the
+# installer's SHA256 filled in; submitting them to microsoft/winget-pkgs is done by hand.
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.9.0.schema.json
+PackageIdentifier: bps2414.Silt
+PackageVersion: 0.1.0
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.9.0

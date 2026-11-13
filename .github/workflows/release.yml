@@ -1,0 +1,93 @@
+name: Release
+
+# Pushing a `vX.Y.Z` tag publishes a GitHub release with the installer, the portable zip and the
+# winget installer manifest filled with this release's hash.
+#
+# The tag must match the version in Cargo.toml (`v0.1.0` <-> version = "0.1.0"); otherwise the job
+# stops before building. Release notes: the annotated tag's message (`git tag -a v0.1.0 -m "..."`);
+# a tag without one gets GitHub's generated notes.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    name: Release (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version (tag vs. Cargo.toml)
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
+          if ($tag -ne "v$version") { throw "tag $tag doesn't match Cargo.toml ($version)" }
+          "VERSION=$version" >> $env:GITHUB_ENV
+
+      # The checkout turns the annotated tag into a lightweight one: fetch it again for its message.
+      - name: Release notes
+        shell: pwsh
+        run: |
+          git fetch --force origin "refs/tags/${{ github.ref_name }}:refs/tags/${{ github.ref_name }}"
+          $notes = (git tag -l --format='%(contents)' "${{ github.ref_name }}") -join "`n"
+          [System.IO.File]::WriteAllText("$PWD\notes.md", $notes.Trim(), [System.Text.UTF8Encoding]::new($false))
+
+      - name: Toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: windows-release
+          cache-on-failure: true
+
+      - name: Build (release)
+        run: cargo build --release --workspace
+      - name: Tests
+        run: cargo test --release --workspace
+
+      # Inno Setup 6 is usually on the image; Chocolatey installs it when it isn't.
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = @("C:\Program Files (x86)\Inno Setup 6\ISCC.exe", "C:\Program Files\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { choco install innosetup -y --no-progress; if ($LASTEXITCODE -ne 0) { throw "choco install innosetup failed" } }
+
+      # Same packing as a local run: dist\Silt-<v>-portable.zip and dist\Silt-Setup-<v>.exe.
+      - name: Package
+        shell: pwsh
+        run: pwsh -File scripts\package.ps1 -SkipBuild -SkipTests
+
+      # The winget installer manifest with this release's URL and hash, ready to submit to
+      # microsoft/winget-pkgs (by hand: nothing here submits it).
+      - name: winget manifest
+        shell: pwsh
+        run: |
+          $setup = "dist\Silt-Setup-$env:VERSION.exe"
+          $sha = (Get-FileHash $setup -Algorithm SHA256).Hash
+          $out = "dist\winget\bps2414.Silt\$env:VERSION"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          foreach ($f in Get-ChildItem winget\bps2414.Silt\*.yaml) {
+            $text = (Get-Content $f -Raw) -replace '0\.1\.0', $env:VERSION -replace '<SHA256>', $sha -replace 'ReleaseDate: .*', "ReleaseDate: $(Get-Date -Format yyyy-MM-dd)"
+            [System.IO.File]::WriteAllText("$out\$($f.Name)", $text, [System.Text.UTF8Encoding]::new($false))
+          }
+          Compress-Archive -Path "dist\winget\*" -DestinationPath "dist\Silt-$env:VERSION-winget-manifest.zip"
+
+      - name: Publish
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $files = @("dist\Silt-Setup-$env:VERSION.exe", "dist\Silt-$env:VERSION-portable.zip", "dist\Silt-$env:VERSION-winget-manifest.zip")
+          $ghArgs = @("release", "create", $tag) + $files + @("--title", "Silt $env:VERSION", "--latest", "--verify-tag")
+          if ((Get-Item notes.md).Length -gt 0) { $ghArgs += @("--notes-file", "notes.md") } else { $ghArgs += "--generate-notes" }
+          gh @ghArgs
+          if ($LASTEXITCODE -ne 0) { throw "gh release create failed" }

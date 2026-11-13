@@ -17,3 +17,4 @@ serde_json.workspace = true
 
 [build-dependencies]
 rune-i18n = { workspace = true, features = ["codegen"] }
+winresource = "0.1"

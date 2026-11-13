@@ -290,6 +290,8 @@ pub struct App {
     pub last_shrunk: Vec<String>,
     /// The user picked Shrink rows themselves: estimates stop adding to the selection.
     pub shrink_touched: bool,
+    /// The fixed drive replayed as a scan (the README's recording): loads once the bar is full.
+    pub replay: Option<Box<Loaded>>,
 }
 
 impl App {
@@ -339,6 +341,7 @@ impl App {
             quit: false,
             last_shrunk: Vec::new(),
             shrink_touched: false,
+            replay: None,
         }
     }
 
