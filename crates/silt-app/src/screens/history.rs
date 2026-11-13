@@ -165,15 +165,7 @@ fn restore_button(p: Pal, i: usize, busy: bool, target: String) -> El {
             .focusable(true)
             .hover(p.hover)
             .press(p.press)
-            .on_press(move |s: &mut App| {
-                s.outcome = None;
-                s.job = Some(crate::app::Job {
-                    kind: JobKind::Restore,
-                    done: 0,
-                    total: 1,
-                    current: screens::leaf(&target).to_string(),
-                });
-            });
+            .on_press(move |s: &mut App| s.restore_now(vec![target.clone()]));
     }
     b
 }

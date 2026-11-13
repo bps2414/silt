@@ -9,7 +9,6 @@
   "drive-pick": "Choose a drive",
   "drive-used": "{{used}} used of {{total}}",
   "bar-label": "What fills the drive, by kind of file",
-
   "job-cleaning": "Cleaning {{what}}",
   "job-shrinking": "Shrinking {{what}}",
   "job-restoring": "Restoring {{what}}",
@@ -35,7 +34,6 @@
   "hint-shrink": "These can get smaller without deleting anything.",
   "open-clean": "Open Clean",
   "open-shrink": "Open Shrink",
-
   "slow-title": "Scanned the slow way",
   "slow-not-admin": "Without administrator rights, Silt opened every folder instead of reading the drive's index. As administrator the same scan takes seconds.",
   "slow-not-ntfs": "This drive isn't NTFS, so Silt opened every folder instead of reading the drive's index.",
@@ -73,7 +71,6 @@
   "confirm-bin.one": "Delete {{count}} item ({{size}}) for good? This can't be undone.",
   "confirm-bin.other": "Delete {{count}} items ({{size}}) for good? This can't be undone.",
   "cancel": "Cancel",
-
   "range": "{{from}} to {{to}} {{unit}}",
   "range-units": "{{from}} to {{to}}",
   "cat-apps": "Apps",
@@ -107,7 +104,6 @@
   "age-months.other": "{{count}} months ago",
   "age-years.one": "{{count}} year ago",
   "age-years.other": "{{count}} years ago",
-
   "clean-sub": "Caches and leftovers that apps and Windows rebuild on their own. Cleaning them doesn't touch your files or settings.",
   "clean-chosen.one": "{{count}} of {{of}} chosen",
   "clean-chosen.other": "{{count}} of {{of}} chosen",
@@ -123,7 +119,6 @@
   "confirm-clean.other": "Clean {{count}} caches and free {{size}}? Apps rebuild what they need.",
   "clean-n.one": "Clean {{count}} cache",
   "clean-n.other": "Clean {{count}} caches",
-
   "algo-fast": "Fast",
   "algo-balanced": "Balanced",
   "algo-smaller": "Smaller",
@@ -149,7 +144,6 @@
   "restored": "Restored",
   "shrink-n.one": "Shrink {{count}} folder",
   "shrink-n.other": "Shrink {{count}} folders",
-
   "large-sub": "The biggest files on {{drive}}. What you pick goes to the Recycle Bin, so you can put it back.",
   "selected.one": "{{count}} selected",
   "selected.other": "{{count}} selected",
@@ -176,14 +170,12 @@
   "large-empty-body": "No file matches these filters. Try a smaller size or a shorter time.",
   "category-empty-title": "Nothing to list",
   "category-empty-body": "No single item in this category is big enough to list on its own.",
-
   "as-list": "List",
   "as-map": "Map",
   "explore-sub": "{{size}} in {{files}}",
   "folder-empty-title": "This folder is empty",
   "folder-empty-body": "Nothing in it takes space on disk.",
   "map-label": "This folder's contents as tiles sized by space",
-
   "history-sub": "Everything Silt has changed on this PC. Shrunk folders can be restored to how they were.",
   "history-since": "saved and freed since {{date}}",
   "history-empty-title": "No changes yet",
@@ -199,7 +191,6 @@
   "history-gave-back": "{{size}} used again",
   "history-moved": "{{size}} to the bin",
   "history-freed": "{{size}} freed",
-
   "settings-sub": "How Silt looks and works on this PC.",
   "same-as-windows": "Same as Windows",
   "theme-light": "Light",
@@ -212,5 +203,8 @@
   "set-admin-note": "As administrator, Silt reads the drive's index and a scan takes seconds. Without it, Silt opens every folder, which takes minutes, and a few stay closed to it.",
   "set-method": "Shrink method",
   "about": "Silt {{version}}",
-  "about-journal": "Free and open source under MIT or Apache 2.0. Every change Silt makes is written to a journal on this PC, and History reads it from there."
+  "about-journal": "Free and open source under MIT or Apache 2.0. Every change Silt makes is written to a journal on this PC, and History reads it from there.",
+  "scan-stopped": "The scan was stopped.",
+  "estimating": "Estimating {{done}} of {{total}} folders",
+  "estimating-body": "Silt reads a few blocks of each kind of file to see how well it compresses. Folders appear here as soon as they are measured."
 }

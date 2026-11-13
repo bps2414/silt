@@ -6,6 +6,7 @@ mod app;
 mod bar;
 mod fixture;
 mod i18n;
+mod live;
 mod screens;
 mod style;
 mod treemap;
@@ -13,6 +14,7 @@ mod ui;
 
 use rune::{Align, AppSpec, Color, Cx, El, Titlebar, Tx, col, el, row};
 use silt_core::Category;
+use silt_core::known::KnownDirs;
 use silt_core::report::Report;
 use silt_core::scan::Fallback;
 
@@ -229,10 +231,7 @@ fn drive_menu(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                 .focusable(true)
                 .hover(p.hover)
                 .press(p.press)
-                .on_press(move |s: &mut App| {
-                    s.drive_menu = false;
-                    s.drive = i;
-                })
+                .on_press(move |s: &mut App| s.switch_drive(i))
                 .child(ui::txt(v.drive(), style::TITLE, p.ink).w(34.0))
                 .child(
                     col()
@@ -320,7 +319,8 @@ pub fn header(p: Pal, title: &str, sub: &str, figure: Option<(String, String)>) 
 /// The compact bar under a screen's header, with what the screen has chosen drawn sparse.
 pub fn strip(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
     let scale = cx.env().scale;
-    let width = cx.layout_size("strip-slot").map_or(1020.0, |[w, _]| w);
+    // The inner row: the slot itself carries the page's padding.
+    let width = cx.layout_size("strip-inner").map_or(1020.0, |[w, _]| w);
     let g = bar::Geom::fit(width, 6, scale);
     let (w, h) = g.points(scale);
     if let (Some(d), Some(v)) = (&s.data, s.volume()) {
@@ -339,11 +339,13 @@ pub fn strip(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
             },
         );
     }
-    row().key("strip-slot").w_full().h(h).child(
-        el().key("strip")
-            .size(w, h)
-            .pixels(&s.strip.pixels)
-            .label(t!("bar-label")),
+    row().key("strip-slot").w_full().child(
+        row().key("strip-inner").w_full().h(h).child(
+            el().key("strip")
+                .size(w, h)
+                .pixels(&s.strip.pixels)
+                .label(t!("bar-label")),
+        ),
     )
 }
 
@@ -393,9 +395,7 @@ pub fn job_line(s: &App, p: Pal, kinds: &[JobKind]) -> Option<El> {
                     "stop",
                     t!("stop"),
                     ui::Kind::Quiet,
-                    Some(|s: &mut App| {
-                        s.job = None;
-                    }),
+                    Some(|s: &mut App| s.stop_job()),
                 )),
         );
     }
@@ -471,6 +471,14 @@ pub fn category_hint(c: Category) -> Option<(&'static str, Screen)> {
 fn poll(s: &mut App, clock: f64, tx: &mut Tx) -> bool {
     let dt = (clock - s.clock).clamp(0.0, 0.1) as f32;
     s.clock = clock;
+    let changed = s.pump();
+    if s.quit {
+        tx.quit();
+    }
+    // A scan or an action runs: read its counters again soon. Idle, nothing wakes the window.
+    if s.working() {
+        tx.wake_after(std::time::Duration::from_millis(50));
+    }
     let mut moving = false;
     let target = if s.preview.is_some() { 1.0 } else { 0.0 };
     if s.preview_t != target {
@@ -489,7 +497,7 @@ fn poll(s: &mut App, clock: f64, tx: &mut Tx) -> bool {
     if moving {
         tx.wake_after(std::time::Duration::ZERO);
     }
-    moving
+    moving || changed
 }
 
 fn on_key(s: &mut App, k: &rune::KeyEvent, _tx: &mut Tx) -> bool {
@@ -683,9 +691,82 @@ const SCENES: &[Scene] = &[
         s.settings.lang = i18n::Lang::Portuguese;
         s.go(Screen::Shrink);
     }),
+    // Two million files on the made-up drive: memory and frame times with a big tree.
+    ("big", |s| {
+        let t = std::time::Instant::now();
+        let rules = silt_core::rules::builtin();
+        let scan = fixture::scan_with(&rules, 2_000_000);
+        let built = t.elapsed();
+        let mut report = Report::build(&scan, &rules, &[], fixture::bin(), fixture::NOW);
+        fixture::estimate(&mut report);
+        let heap = scan.tree.heap_bytes();
+        let nodes = scan.tree.nodes.len();
+        s.drives[0] = scan.volume.clone();
+        s.load(Loaded::new(scan, report, rules, Vec::new(), fixture::NOW));
+        eprintln!(
+            "big: {nodes} nodes, tree {} MB, built in {:.2} s, report and lists {:.2} s",
+            heap >> 20,
+            built.as_secs_f64(),
+            (t.elapsed() - built).as_secs_f64()
+        );
+    }),
+    ("big-category", |s| {
+        (SCENES.iter().find(|x| x.0 == "big").unwrap().1)(s);
+        s.go(Screen::Category(Category::Developer));
+    }),
+    ("big-large", |s| {
+        (SCENES.iter().find(|x| x.0 == "big").unwrap().1)(s);
+        s.go(Screen::Large);
+    }),
+    // The real system drive through the window's own threads: checks the wiring, not a look.
+    ("live-scan", |s| {
+        *s = App::real(live::known_dirs(), app::Settings::default(), false);
+        settle(s);
+    }),
 ];
 
+/// Pumps the threads' messages until the scan, the estimate and any action are done.
+fn settle(s: &mut App) {
+    let start = std::time::Instant::now();
+    while (s.working() || s.live.as_ref().is_some_and(|l| l.estimating.is_some()))
+        && start.elapsed() < std::time::Duration::from_secs(300)
+    {
+        s.pump();
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+    s.pump();
+}
+
+/// What `main` learned before the window opened: whose folders, the saved settings, and whether
+/// the UAC prompt was declined.
+static BOOT: std::sync::Mutex<Option<(KnownDirs, app::Settings, bool)>> =
+    std::sync::Mutex::new(None);
+
+/// The real drives in a window; the fixed drive for `--snap`, `--script`, `--tree` and the like,
+/// so every scene stays the same.
+fn init() -> App {
+    let boot = BOOT.lock().unwrap_or_else(|e| e.into_inner()).take();
+    match boot {
+        Some((known, settings, declined)) if !rune::is_headless() => {
+            App::real(known, settings, declined)
+        }
+        _ => demo(),
+    }
+}
+
 fn main() {
+    if !rune::is_headless() {
+        let known = live::known_dirs();
+        let settings = live::load_settings(&known);
+        let mut declined = false;
+        if settings.ask_admin && !live::relaunched() && !silt_core::win::is_elevated() {
+            match live::elevate(&known) {
+                Ok(()) => return,
+                Err(_) => declined = true,
+            }
+        }
+        *BOOT.lock().unwrap_or_else(|e| e.into_inner()) = Some((known, settings, declined));
+    }
     let spec = AppSpec {
         min_size: Some((880.0, 600.0)),
         scenes: SCENES,
@@ -693,7 +774,8 @@ fn main() {
         families: style::FAMILIES,
         poll: Some(poll),
         on_key: Some(on_key),
-        ..AppSpec::new("Silt", (1120.0, 760.0), demo, view)
+        setup: Some(|s: &mut App, w| s.set_waker(w)),
+        ..AppSpec::new("Silt", (1120.0, 760.0), init, view)
     };
     rune::App::new(spec).titlebar(Titlebar::new(TITLEBAR)).run();
 }

@@ -12,6 +12,8 @@ path = "src/main.rs"
 silt-core.workspace = true
 rune.workspace = true
 rune-i18n.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 [build-dependencies]
 rune-i18n = { workspace = true, features = ["codegen"] }

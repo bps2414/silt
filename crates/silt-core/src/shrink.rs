@@ -386,8 +386,9 @@ impl Drop for Compressor {
     }
 }
 
+/// Compression ratios seen for one extension.
 #[derive(Clone, Copy, Default, Debug)]
-struct Stat {
+pub struct Stat {
     n: u64,
     sum: f64,
     sumsq: f64,
@@ -417,10 +418,18 @@ impl Stat {
     }
 }
 
+/// Ratios per extension that several samplers (threads, folders) learn together.
+pub type SharedStats = Arc<Mutex<HashMap<String, Stat>>>;
+
+/// Extensions that say nothing about the bytes inside: learned per folder even when shared.
+const OPAQUE: [&str; 6] = ["", "dat", "bin", "data", "bundle", "res"];
+
 /// Ratios learned per extension, shared across folders so each extension is sampled once.
 pub struct Sampler {
     algo: Algorithm,
-    stats: HashMap<String, Stat>,
+    stats: SharedStats,
+    /// With shared stats, the folder opaque extensions are learned in.
+    scope: Option<String>,
     comp: Option<Compressor>,
     buf: Vec<u8>,
     out: Vec<u8>,
@@ -490,11 +499,29 @@ impl Sampler {
     pub fn new(algo: Algorithm) -> Self {
         Sampler {
             algo,
-            stats: HashMap::new(),
+            stats: SharedStats::default(),
+            scope: None,
             comp: Compressor::new(),
             buf: Vec::new(),
             out: Vec::new(),
             read: 0,
+        }
+    }
+
+    /// A sampler that learns into `stats` with others: an extension sampled in one folder isn't
+    /// sampled again in the next, except the opaque ones (no extension, `.dat`, ...).
+    pub fn shared(algo: Algorithm, stats: SharedStats) -> Self {
+        Sampler {
+            stats,
+            scope: Some(String::new()),
+            ..Self::new(algo)
+        }
+    }
+
+    fn key(&self, ext: &str) -> String {
+        match &self.scope {
+            Some(folder) if OPAQUE.contains(&ext) => format!("{folder}|{ext}"),
+            _ => ext.to_string(),
         }
     }
 
@@ -528,7 +555,8 @@ impl Sampler {
             read += n as u64;
             let size = comp.size(&self.buf[..n], &mut self.out);
             let ratio = (size as f64 / n as f64 * self.algo.sample_factor()).min(1.0);
-            self.stats.entry(c.ext.clone()).or_default().add(ratio);
+            let key = self.key(&c.ext);
+            lock(&self.stats).entry(key).or_default().add(ratio);
         }
         self.read += read;
         read
@@ -543,6 +571,9 @@ impl Sampler {
         cap: u64,
         cancel: &AtomicBool,
     ) -> Estimate {
+        if self.scope.is_some() {
+            self.scope = Some(folder.to_string());
+        }
         let chunk = self.algo.chunk().min(16384);
         let mut by_ext: HashMap<&str, Vec<&Candidate>> = HashMap::new();
         for c in &files.eligible {
@@ -556,7 +587,7 @@ impl Sampler {
             if cancel.load(Ordering::Relaxed) || spent >= cap {
                 break;
             }
-            let have = self.stats.get(ext).map_or(0, |s| s.n);
+            let have = lock(&self.stats).get(&self.key(ext)).map_or(0, |s| s.n);
             if have >= SAMPLES_PER_EXT {
                 continue;
             }
@@ -570,8 +601,9 @@ impl Sampler {
                 spent += self.sample_file(c, (per_pick * count).min((cap - spent) / chunk + 1));
             }
         }
+        let stats = lock(&self.stats).clone();
         let fallback = {
-            let all: Stat = self.stats.values().fold(Stat::default(), |mut a, s| {
+            let all: Stat = stats.values().fold(Stat::default(), |mut a, s| {
                 a.n += s.n;
                 a.sum += s.sum;
                 a.sumsq += s.sumsq;
@@ -596,9 +628,8 @@ impl Sampler {
         };
         for c in &files.eligible {
             e.eligible += c.alloc;
-            let s = self
-                .stats
-                .get(&c.ext)
+            let s = stats
+                .get(&self.key(&c.ext))
                 .filter(|s| s.n > 0)
                 .unwrap_or(&fallback);
             let spread = (2.0 * s.se()).max(0.03);
@@ -616,6 +647,10 @@ impl Sampler {
         }
         e
     }
+}
+
+fn lock<T>(m: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    m.lock().unwrap_or_else(|e| e.into_inner())
 }
 
 /// Lowers this thread's I/O and CPU priority while it lives (estimates run behind the UI).

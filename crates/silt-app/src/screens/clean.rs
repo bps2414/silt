@@ -168,7 +168,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                         "confirm",
                         &tp!("clean-n", chosen.len()),
                         ui::Kind::Danger,
-                        Some(|s: &mut App| s.confirm = None),
+                        Some(|s: &mut App| s.clean_now()),
                     ))
             } else {
                 action_row(

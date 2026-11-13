@@ -59,6 +59,31 @@ pub fn is_elevated() -> bool {
     unsafe { windows::Win32::UI::Shell::IsUserAnAdmin().as_bool() }
 }
 
+/// Starts this program again elevated (the UAC prompt) with `args`. An error means it didn't
+/// start: the prompt was cancelled (`ERROR_CANCELLED`, 1223) or the shell refused.
+pub fn relaunch_elevated(args: &str) -> std::io::Result<()> {
+    use windows::Win32::UI::Shell::ShellExecuteW;
+    use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+    let exe = std::env::current_exe()?;
+    let (verb, file, params) = (wide("runas"), wide(exe.as_os_str()), wide(args));
+    let h = unsafe {
+        ShellExecuteW(
+            None,
+            pcwstr(&verb),
+            pcwstr(&file),
+            pcwstr(&params),
+            PCWSTR::null(),
+            SW_SHOWNORMAL,
+        )
+    };
+    // Above 32 is success; below, an error code (the last error says which).
+    if h.0 as isize > 32 {
+        Ok(())
+    } else {
+        Err(std::io::Error::last_os_error())
+    }
+}
+
 /// The win32 error of an `io::Error`, if it has one.
 pub fn os_code(e: &std::io::Error) -> u32 {
     e.raw_os_error().unwrap_or(0) as u32

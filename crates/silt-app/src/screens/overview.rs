@@ -42,7 +42,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                 "elevate",
                 t!("restart-admin"),
                 ui::Kind::Primary,
-                Some(|_: &mut App| {}),
+                Some(|s: &mut App| s.restart_admin()),
             ));
         }
         actions.push(ui::button(
@@ -117,7 +117,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                     "stop-scan",
                     t!("stop"),
                     ui::Kind::Quiet,
-                    Some(|_: &mut App| {}),
+                    Some(|s: &mut App| s.stop_scan()),
                 )),
         ),
         (Phase::Failed { drive, .. }, _) => (drive.clone(), t!("unreadable").to_string(), col()),
@@ -148,7 +148,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                     "retry",
                     t!("try-again"),
                     ui::Kind::Primary,
-                    Some(|_: &mut App| {}),
+                    Some(|s: &mut App| s.start_scan(false)),
                 )],
             )
             .mt(22.0),
@@ -416,7 +416,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                     "confirm",
                     t!("empty-bin"),
                     ui::Kind::Danger,
-                    Some(|s: &mut App| s.confirm = None),
+                    Some(|s: &mut App| s.empty_bin_now()),
                 )),
         );
     }

@@ -61,7 +61,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>, cat: Option<Category>) -> El {
     let tree = &d.scan.tree;
     let drive = s.volume().map(|v| v.drive()).unwrap_or_default();
     let ids: Cow<[NodeId]> = match cat {
-        Some(c) => Cow::Owned(category_items(tree, &d.dominant, c)),
+        Some(c) => Cow::Borrowed(d.category_items(c)),
         None => Cow::Borrowed(&s.large.ids),
     };
     let chosen_bytes: u64 = s.large.sel.iter().map(|&id| tree.node(id).alloc).sum();
@@ -184,7 +184,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>, cat: Option<Category>) -> El {
                 "confirm",
                 t!("move-to-bin"),
                 ui::Kind::Danger,
-                Some(|s: &mut App| s.confirm = None),
+                Some(|s: &mut App| s.trash_now()),
             )),
         None => {
             let hint = cat.and_then(crate::category_hint);

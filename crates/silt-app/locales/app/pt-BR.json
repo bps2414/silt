@@ -9,7 +9,6 @@
   "drive-pick": "Escolher unidade",
   "drive-used": "{{used}} usados de {{total}}",
   "bar-label": "O que ocupa a unidade, por tipo de arquivo",
-
   "job-cleaning": "Limpando {{what}}",
   "job-shrinking": "Compactando {{what}}",
   "job-restoring": "Restaurando {{what}}",
@@ -35,7 +34,6 @@
   "hint-shrink": "Dá para deixar isto menor sem apagar nada.",
   "open-clean": "Abrir Limpar",
   "open-shrink": "Abrir Compactar",
-
   "slow-title": "Lido do jeito lento",
   "slow-not-admin": "Sem permissão de administrador, o Silt abriu pasta por pasta em vez de ler o índice da unidade. Como administrador, a mesma leitura leva segundos.",
   "slow-not-ntfs": "Esta unidade não é NTFS, então o Silt abriu pasta por pasta em vez de ler o índice da unidade.",
@@ -73,7 +71,6 @@
   "confirm-bin.one": "Apagar {{count}} item ({{size}}) de vez? Não dá para desfazer.",
   "confirm-bin.other": "Apagar {{count}} itens ({{size}}) de vez? Não dá para desfazer.",
   "cancel": "Cancelar",
-
   "range": "{{from}} a {{to}} {{unit}}",
   "range-units": "{{from}} a {{to}}",
   "cat-apps": "Apps",
@@ -107,7 +104,6 @@
   "age-months.other": "há {{count}} meses",
   "age-years.one": "há {{count}} ano",
   "age-years.other": "há {{count}} anos",
-
   "clean-sub": "Caches e sobras que os apps e o Windows recriam sozinhos. Limpar não mexe nos seus arquivos nem nas suas configurações.",
   "clean-chosen.one": "{{count}} de {{of}} escolhido",
   "clean-chosen.other": "{{count}} de {{of}} escolhidos",
@@ -123,7 +119,6 @@
   "confirm-clean.other": "Limpar {{count}} caches e liberar {{size}}? Os apps recriam o que precisarem.",
   "clean-n.one": "Limpar {{count}} cache",
   "clean-n.other": "Limpar {{count}} caches",
-
   "algo-fast": "Rápido",
   "algo-balanced": "Equilibrado",
   "algo-smaller": "Menor",
@@ -149,7 +144,6 @@
   "restored": "Restaurado",
   "shrink-n.one": "Compactar {{count}} pasta",
   "shrink-n.other": "Compactar {{count}} pastas",
-
   "large-sub": "Os maiores arquivos em {{drive}}. O que você escolher vai para a Lixeira, então dá para recuperar.",
   "selected.one": "{{count}} escolhido",
   "selected.other": "{{count}} escolhidos",
@@ -176,14 +170,12 @@
   "large-empty-body": "Nenhum arquivo bate com estes filtros. Tente um tamanho menor ou um tempo mais curto.",
   "category-empty-title": "Nada para listar",
   "category-empty-body": "Nenhum item desta categoria é grande o bastante para aparecer sozinho.",
-
   "as-list": "Lista",
   "as-map": "Mapa",
   "explore-sub": "{{size}} em {{files}}",
   "folder-empty-title": "Esta pasta está vazia",
   "folder-empty-body": "Nada aqui ocupa espaço em disco.",
   "map-label": "O conteúdo desta pasta em blocos do tamanho do espaço que ocupam",
-
   "history-sub": "Tudo o que o Silt mudou neste PC. Pastas compactadas podem voltar a ser como eram.",
   "history-since": "economizados e liberados desde {{date}}",
   "history-empty-title": "Nenhuma mudança ainda",
@@ -199,7 +191,6 @@
   "history-gave-back": "{{size}} de volta em uso",
   "history-moved": "{{size}} para a Lixeira",
   "history-freed": "{{size}} liberados",
-
   "settings-sub": "Como o Silt aparece e funciona neste PC.",
   "same-as-windows": "Igual ao Windows",
   "theme-light": "Claro",
@@ -212,5 +203,8 @@
   "set-admin-note": "Como administrador, o Silt lê o índice da unidade e a leitura leva segundos. Sem isso, ele abre pasta por pasta, o que leva minutos, e algumas ficam fechadas para ele.",
   "set-method": "Método de compactação",
   "about": "Silt {{version}}",
-  "about-journal": "Livre e de código aberto, sob MIT ou Apache 2.0. Cada mudança que o Silt faz fica registrada num diário neste PC, e o Histórico lê de lá."
+  "about-journal": "Livre e de código aberto, sob MIT ou Apache 2.0. Cada mudança que o Silt faz fica registrada num diário neste PC, e o Histórico lê de lá.",
+  "scan-stopped": "A varredura foi interrompida.",
+  "estimating": "Estimando {{done}} de {{total}} pastas",
+  "estimating-body": "O Silt lê alguns blocos de cada tipo de arquivo para ver quanto ele comprime. As pastas aparecem aqui assim que são medidas."
 }

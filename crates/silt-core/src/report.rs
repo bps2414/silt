@@ -13,7 +13,8 @@ use crate::largest::{self, Filter};
 use crate::rules::{Rule, Safety};
 use crate::scan::{ScanResult, ScannerKind};
 use crate::shrink::{
-    Algorithm, Background, Estimate, Excludes, Sampler, files_in_tree, sums_in_tree,
+    Algorithm, Background, Estimate, Excludes, FolderFiles, Sampler, SharedStats, files_in_tree,
+    sums_in_tree,
 };
 use crate::trash::BinInfo;
 use crate::tree::{NONE, NodeId, Tree};
@@ -210,8 +211,8 @@ impl Report {
         }
     }
 
-    /// Samples every Shrink candidate (half the cores, low I/O priority) and fills the
-    /// estimates. `done` counts finished folders for a progress line.
+    /// Samples every Shrink candidate (low I/O priority) and fills the estimates. `done` counts
+    /// finished folders for a progress line.
     pub fn estimate(
         &mut self,
         tree: &Tree,
@@ -220,39 +221,42 @@ impl Report {
         cancel: &AtomicBool,
         done: &AtomicUsize,
     ) {
-        let ex = Excludes::builtin();
-        let next = AtomicUsize::new(0);
+        let jobs = self.estimate_jobs(tree);
         let results = Mutex::new(Vec::new());
-        let rows = &self.shrink;
-        let threads = (std::thread::available_parallelism().map_or(4, |n| n.get()) / 2)
-            .clamp(1, rows.len().max(1));
-        std::thread::scope(|s| {
-            for _ in 0..threads {
-                s.spawn(|| {
-                    let _bg = Background::enter();
-                    loop {
-                        let i = next.fetch_add(1, Ordering::Relaxed);
-                        if i >= rows.len() || cancel.load(Ordering::Relaxed) {
-                            break;
-                        }
-                        let row = &rows[i];
-                        let files = files_in_tree(tree, row.node, &ex);
-                        // Read at most 1/64 of the folder, between 4 and 32 MB.
-                        let cap = (row.eligible / 64).clamp(4 << 20, 32 << 20);
-                        let e =
-                            Sampler::new(algo).estimate(&row.path, &files, cluster, cap, cancel);
-                        results
-                            .lock()
-                            .unwrap_or_else(|e| e.into_inner())
-                            .push((i, e));
-                        done.fetch_add(1, Ordering::Relaxed);
-                    }
-                });
-            }
+        run_estimates(&jobs, cluster, algo, cancel, |i, e| {
+            results
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .push((i, e));
+            done.fetch_add(1, Ordering::Relaxed);
         });
         for (i, e) in results.into_inner().unwrap_or_else(|e| e.into_inner()) {
-            self.shrink[i].estimate = Some(e);
+            self.set_estimate(i, e);
         }
+    }
+
+    /// The files of every Shrink row, read from the tree so the estimate can run without it.
+    pub fn estimate_jobs(&self, tree: &Tree) -> Vec<EstimateJob> {
+        let ex = Excludes::builtin();
+        self.shrink
+            .iter()
+            .enumerate()
+            .filter(|(_, r)| r.estimate.is_none())
+            .map(|(index, r)| EstimateJob {
+                index,
+                path: r.path.clone(),
+                eligible: r.eligible,
+                files: files_in_tree(tree, r.node, &ex),
+            })
+            .collect()
+    }
+
+    /// Fills one row's estimate and the category totals it feeds.
+    pub fn set_estimate(&mut self, i: usize, e: Estimate) {
+        let Some(row) = self.shrink.get_mut(i) else {
+            return;
+        };
+        row.estimate = Some(e);
         for c in &mut self.categories {
             c.shrink = 0;
         }
@@ -316,4 +320,51 @@ fn has_ancestor_in(tree: &Tree, node: NodeId, set: &HashSet<NodeId>) -> bool {
         cur = tree.node(cur).parent;
     }
     false
+}
+
+/// One Shrink row to estimate: its index in [`Report::shrink`] and the files the scan found.
+pub struct EstimateJob {
+    pub index: usize,
+    pub path: String,
+    pub eligible: u64,
+    pub files: FolderFiles,
+}
+
+/// Estimates `jobs` biggest first, on every core but one, at low I/O priority. Extensions are
+/// learned once across folders ([`Sampler::shared`]), so a `.dll` read in one program isn't read
+/// again in the next. `on_done(index, estimate)` runs as each folder finishes.
+pub fn run_estimates(
+    jobs: &[EstimateJob],
+    cluster: u64,
+    algo: Algorithm,
+    cancel: &AtomicBool,
+    on_done: impl Fn(usize, Estimate) + Sync,
+) {
+    let mut order: Vec<&EstimateJob> = jobs.iter().collect();
+    order.sort_by_key(|j| std::cmp::Reverse(j.eligible));
+    let next = AtomicUsize::new(0);
+    let stats = SharedStats::default();
+    let threads = (std::thread::available_parallelism().map_or(4, |n| n.get()) - 1)
+        .clamp(1, order.len().max(1));
+    std::thread::scope(|s| {
+        for _ in 0..threads {
+            s.spawn(|| {
+                let _bg = Background::enter();
+                let mut sampler = Sampler::shared(algo, stats.clone());
+                loop {
+                    let i = next.fetch_add(1, Ordering::Relaxed);
+                    if i >= order.len() || cancel.load(Ordering::Relaxed) {
+                        break;
+                    }
+                    let j = order[i];
+                    // Read at most 1/64 of the folder, between 2 and 16 MB.
+                    let cap = (j.eligible / 64).clamp(2 << 20, 16 << 20);
+                    let e = sampler.estimate(&j.path, &j.files, cluster, cap, cancel);
+                    if !cancel.load(Ordering::Relaxed) {
+                        on_done(j.index, e);
+                    }
+                }
+            });
+        }
+    });
 }

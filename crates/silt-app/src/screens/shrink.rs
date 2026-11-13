@@ -111,13 +111,26 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
         );
     }
 
+    let estimating = s.live.as_ref().and_then(|l| l.estimating);
     if rows.is_empty() {
-        let body = ui::empty(
-            p,
-            "empty",
-            &t!("shrink-empty-title", drive = drive),
-            t!("shrink-empty-body"),
-        );
+        let body = match estimating {
+            Some((done, total)) => ui::empty(
+                p,
+                "estimating",
+                &t!(
+                    "estimating",
+                    done = i18n::int(done as u64),
+                    total = i18n::int(total as u64)
+                ),
+                t!("estimating-body"),
+            ),
+            None => ui::empty(
+                p,
+                "empty",
+                &t!("shrink-empty-title", drive = drive),
+                t!("shrink-empty-body"),
+            ),
+        };
         return crate::page(p, "shrink", header, None, body, None);
     }
 
@@ -177,6 +190,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                     .hover(p.hover)
                     .press(p.press)
                     .on_press(move |s: &mut App| {
+                        s.shrink_touched = true;
                         if !s.shrink_sel.remove(&path) {
                             s.shrink_sel.insert(path.clone());
                         }
@@ -215,6 +229,21 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
             .child(ui::figure(i18n::range(a, b), p.ink, 150.0));
         list = list.child(line).child(ui::hairline(p));
     }
+    if let Some((done, total)) = estimating {
+        list = list.child(
+            ui::txt(
+                t!(
+                    "estimating",
+                    done = i18n::int(done as u64),
+                    total = i18n::int(total as u64)
+                ),
+                style::BODY,
+                p.ink2,
+            )
+            .key("estimating")
+            .pt(14.0),
+        );
+    }
 
     let method = row()
         .key("method")
@@ -244,7 +273,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                     "restore",
                     t!("restore"),
                     ui::Kind::Quiet,
-                    Some(|_: &mut App| {}),
+                    Some(|s: &mut App| s.restore_now(s.last_shrunk.clone())),
                 ));
             }
             r.child(ui::button(
@@ -252,7 +281,7 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
                 "go",
                 &tp!("shrink-n", chosen.len()),
                 ui::Kind::Primary,
-                (!chosen.is_empty()).then_some((|_: &mut App| {}) as fn(&mut App)),
+                (!chosen.is_empty()).then_some((|s: &mut App| s.shrink_now()) as fn(&mut App)),
             ))
         }
         None => row()
@@ -261,12 +290,9 @@ pub fn view(s: &App, p: Pal, cx: &mut Cx<App>) -> El {
             .center_y()
             .child(method.grow(1.0))
             .child(
-                action_row(
-                    p,
-                    &tp!("shrink-n", chosen.len()),
-                    !chosen.is_empty(),
-                    |_| {},
-                )
+                action_row(p, &tp!("shrink-n", chosen.len()), !chosen.is_empty(), |s| {
+                    s.shrink_now()
+                })
                 .grow(0.0),
             ),
     };

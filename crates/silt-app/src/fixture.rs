@@ -148,6 +148,12 @@ impl Fake {
 
 /// The scan of the made-up C:.
 pub fn scan(rules: &[Rule]) -> ScanResult {
+    scan_with(rules, 0)
+}
+
+/// The made-up C: with `extra` more files in a thousand-file `node_modules` per folder (the
+/// 2-million-file drive of the memory check).
+pub fn scan_with(rules: &[Rule], extra: u32) -> ScanResult {
     let mut f = Fake {
         entries: Vec::new(),
         dirs: HashMap::new(),
@@ -566,7 +572,19 @@ pub fn scan(rules: &[Rule]) -> ScanResult {
         (2, 30),
     );
 
+    for d in 0..extra.div_ceil(1000) {
+        f.spread(
+            &format!(r"{ana}\Projects\app{}\node_modules\pkg{d}", d / 40),
+            "m",
+            &["js", "json", "ts", "map"],
+            1000.min(extra - d * 1000),
+            8 * MB,
+            (10, 400),
+        );
+    }
+
     let mut b = TreeBuilder::new("C:", 0);
+    b.reserve(f.entries.len());
     for e in f.entries {
         b.push(e);
     }

@@ -1,5 +1,6 @@
 //! The window's state: what was scanned, what each screen has selected, and what is running.
 
+use std::cell::OnceCell;
 use std::collections::BTreeSet;
 
 use silt_core::journal::{Action, Entry};
@@ -35,11 +36,23 @@ pub enum Theme {
     Dark,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Settings {
     pub lang: Lang,
     pub theme: Theme,
     pub ask_admin: bool,
     pub algo: Algorithm,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Settings {
+            lang: Lang::System,
+            theme: Theme::System,
+            ask_admin: true,
+            algo: Algorithm::Xpress8k,
+        }
+    }
 }
 
 pub enum Phase {
@@ -114,6 +127,8 @@ pub struct Loaded {
     pub large_old: [u64; 11],
     pub journal: Vec<Entry>,
     pub now: u64,
+    /// Each category's own list, built the first time it is shown.
+    cat_items: [OnceCell<Vec<NodeId>>; 11],
 }
 
 impl Loaded {
@@ -139,7 +154,15 @@ impl Loaded {
             large_old,
             journal,
             now,
+            cat_items: Default::default(),
         }
+    }
+
+    /// What a category's screen lists (computed once per scan).
+    pub fn category_items(&self, c: Category) -> &[NodeId] {
+        self.cat_items[c.index()].get_or_init(|| {
+            crate::screens::large::category_items(&self.scan.tree, &self.dominant, c)
+        })
     }
 
     pub fn rule(&self, id: &str) -> Option<&Rule> {
@@ -259,6 +282,14 @@ pub struct App {
     pub bar_hover: Option<Category>,
     /// The palette of the last view, for rows built outside it (virtual lists).
     pub pal: std::cell::Cell<crate::style::Pal>,
+    /// The real drives (None on the fixed drive of the scenes).
+    pub live: Option<Box<crate::live::Live>>,
+    /// Close the window on the next frame (an elevated copy took over).
+    pub quit: bool,
+    /// Folders the last Shrink compressed, for its Restore button.
+    pub last_shrunk: Vec<String>,
+    /// The user picked Shrink rows themselves: estimates stop adding to the selection.
+    pub shrink_touched: bool,
 }
 
 impl App {
@@ -276,12 +307,7 @@ impl App {
             drive_menu: false,
             fallback: None,
             fallback_hidden: false,
-            settings: Settings {
-                lang: Lang::System,
-                theme: Theme::System,
-                ask_admin: true,
-                algo: Algorithm::Xpress8k,
-            },
+            settings: Settings::default(),
             clean_sel: BTreeSet::new(),
             shrink_sel: BTreeSet::new(),
             large: LargeView {
@@ -309,6 +335,10 @@ impl App {
             map: Bar::default(),
             bar_hover: None,
             pal: std::cell::Cell::new(crate::style::pal(false, 1.0)),
+            live: None,
+            quit: false,
+            last_shrunk: Vec::new(),
+            shrink_touched: false,
         }
     }
 
@@ -341,6 +371,25 @@ impl App {
         self.phase = Phase::Ready;
         self.data = Some(Box::new(data));
         self.refresh_large();
+    }
+
+    /// Takes a scan made after an action, keeping the screen where it was.
+    pub fn reload(&mut self, data: Loaded) {
+        let folder = self
+            .data
+            .as_ref()
+            .map(|d| d.scan.tree.path(self.explore.folder));
+        let (clean, shrink) = (self.clean_sel.clone(), self.shrink_sel.clone());
+        self.load(data);
+        let Some(d) = self.data.as_ref() else { return };
+        if let Some(id) = folder.and_then(|f| d.scan.tree.find(&f)) {
+            self.explore.folder = id;
+        }
+        self.clean_sel = clean
+            .into_iter()
+            .filter(|r| d.report.clean.iter().any(|c| &c.rule == r))
+            .collect();
+        self.shrink_sel = shrink;
     }
 
     pub fn filter(&self) -> Filter {
