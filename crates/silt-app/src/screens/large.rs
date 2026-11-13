@@ -286,8 +286,7 @@ fn item_row(s: &App, id: NodeId, widest: u64, cat: Option<Category>, actionable:
 }
 
 fn filters(s: &App, p: Pal) -> El {
-    let seg =
-        |key: &str, items: Vec<(String, bool, Box<dyn Fn(&mut App)>)>| ui::segmented(p, key, items);
+    let seg = |key: &str, items: Vec<ui::Choice>| ui::segmented(p, key, items);
     let kind = seg(
         "kind",
         vec![

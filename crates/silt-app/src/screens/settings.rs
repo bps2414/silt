@@ -105,7 +105,7 @@ pub fn view(s: &App, p: Pal, _cx: &mut Cx<App>) -> El {
     crate::page(p, "settings", header, None, body, None)
 }
 
-type Choice = (String, bool, Box<dyn Fn(&mut App)>);
+use crate::ui::Choice;
 
 fn choice(label: &str, on: bool, f: fn(&mut App)) -> Choice {
     (label.to_string(), on, Box::new(f))

@@ -2746,19 +2746,10 @@ dependencies = [
  "icu_provider",
  "js-sys",
  "objc2-foundation 0.3.2",
+ "serde_json",
  "web-sys",
  "windows",
  "writeable",
-]
-
-[[package]]
-name = "rune-kit"
-version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune?rev=250597b0a591881b5c0138370cbd5f405ed710db#250597b0a591881b5c0138370cbd5f405ed710db"
-dependencies = [
- "rune",
- "rune-motion",
- "unicode-segmentation",
 ]
 
 [[package]]
@@ -2970,8 +2961,6 @@ version = "0.1.0"
 dependencies = [
  "rune",
  "rune-i18n",
- "rune-kit",
- "rune-motion",
  "silt-core",
 ]
 

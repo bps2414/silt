@@ -529,7 +529,9 @@ fn first_shrink(s: &App) -> String {
         .unwrap_or_default()
 }
 
-const SCENES: &[(&str, fn(&mut App))] = &[
+type Scene = (&'static str, fn(&mut App));
+
+const SCENES: &[Scene] = &[
     ("overview", |_| {}),
     ("overview-scanning", |s| {
         let used = s.volume().map_or(0, |v| v.used());

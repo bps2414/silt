@@ -112,8 +112,11 @@ pub fn switch(p: Pal, on: bool) -> El {
         )
 }
 
+/// A segmented choice: its label, whether it is chosen, and what choosing it does.
+pub type Choice = (String, bool, Box<dyn Fn(&mut App)>);
+
 /// Choices side by side; the chosen one sits on the surface colour with an ink label.
-pub fn segmented(p: Pal, key: &str, items: Vec<(String, bool, Box<dyn Fn(&mut App)>)>) -> El {
+pub fn segmented(p: Pal, key: &str, items: Vec<Choice>) -> El {
     let mut r = row()
         .key(key)
         .role("radiogroup")

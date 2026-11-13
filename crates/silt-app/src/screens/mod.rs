@@ -14,7 +14,8 @@ use crate::style::Pal;
 use crate::ui;
 
 /// The scan's results, or the screen to show while there are none.
-pub fn loaded<'a>(s: &'a App, p: Pal) -> Result<&'a Loaded, El> {
+#[allow(clippy::result_large_err)]
+pub fn loaded(s: &App, p: Pal) -> Result<&Loaded, El> {
     match (&s.phase, &s.data) {
         (Phase::Ready, Some(d)) => Ok(d),
         (Phase::Failed { drive, .. }, _) => Err(ui::empty(
